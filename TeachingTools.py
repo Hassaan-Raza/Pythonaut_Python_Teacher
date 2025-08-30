@@ -10,6 +10,12 @@ def search_python_resources(query: str, skill_level: str = "beginner"):
     Focuses on official documentation, tutorials, and reputable learning platforms.
     Can be tailored to different skill levels: beginner, intermediate, or professional.
     """
+    # Handle dictionary inputs (workaround for agent tool calling issue)
+    if isinstance(query, dict):
+        query = query.get('description', '') if 'description' in query else str(query)
+    if isinstance(skill_level, dict):
+        skill_level = skill_level.get('description', 'beginner') if 'description' in skill_level else 'beginner'
+    
     try:
         # Base reliable Python education sites
         base_sites = "site:docs.python.org OR site:python.org OR site:stackoverflow.com"
@@ -26,7 +32,7 @@ def search_python_resources(query: str, skill_level: str = "beginner"):
         enhanced_query = f"{sites} {query}"
 
         search = DuckDuckGoSearchResults(
-            num_results=7,  # Increased to get more diverse results
+            num_results=5,  # Reduced to get more relevant results
             backend="lite",
             safesearch="Moderate"
         )
