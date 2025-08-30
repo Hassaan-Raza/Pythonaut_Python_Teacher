@@ -27,6 +27,7 @@ from TutorTasks import (
     quiz_task,
     coordination_task,
     task_to_strings,
+    conversation_task
 )
 # Your agent objects (must exist in TutorAgents.py)
 from TutorAgents import (
@@ -35,6 +36,7 @@ from TutorAgents import (
     curriculum_planner,
     quiz_master,
     project_coordinator,
+    conversation_agent
 )
 from streamlit_local_storage import LocalStorage
 import re
@@ -444,20 +446,80 @@ def process_user_input_and_run(user_input: str) -> str:
     assign the Task.agent properly and run Crew.kickoff() for that one task.
     Returns the textual result.
     """
-    # normalize and infer
-    lower = user_input.lower()
+    # Normalize input
+    lower = user_input.lower().strip()
     skill = st.session_state.user_info.get("level", "beginner")
     goals = st.session_state.user_info.get("goals", "")
 
-    # TEACHING INTENT DETECTION - Check this FIRST
+    # Check for empty or very short messages
+    if not user_input or len(user_input.strip()) < 2:
+        return "I'm here to help you learn Python! What would you like to know about?"
+
+    # ===== CONVERSATIONAL MESSAGES =====
+    conversational_phrases = {
+        # Greetings
+        "greeting": ["hi", "hello", "hey", "hola", "greetings", "good morning", "good afternoon", "good evening"],
+        # Thanks
+        "thanks": ["thank", "thanks", "appreciate", "grateful", "cheers", "thx"],
+        # Goodbyes
+        "goodbye": ["bye", "goodbye", "see you", "farewell", "cya", "see ya"],
+        # How are you
+        "how_are_you": ["how are you", "how's it going", "what's up", "how do you do"],
+        # Positive feedback
+        "positive": ["great", "awesome", "amazing", "wonderful", "perfect", "excellent", "good", "nice", "cool"],
+        # Negative feedback
+        "negative": ["bad", "terrible", "awful", "horrible", "not good", "sucks"],
+        # Confusion
+        "confusion": ["confused", "don't understand", "not clear", "help me", "what does this mean"],
+        # Agreement
+        "agreement": ["yes", "yeah", "yep", "sure", "okay", "ok", "alright", "of course"],
+        # Disagreement
+        "disagreement": ["no", "nope", "nah", "not really", "disagree"],
+        # Encouragement
+        "encouragement": ["wow", "impressive", "brilliant", "fantastic", "well done"],
+        # Apologies
+        "apology": ["sorry", "apologize", "my bad", "oops", "whoops"]
+    }
+
+    # Check for conversational intent
+    is_conversational = False
+    conversational_type = None
+
+    for intent, phrases in conversational_phrases.items():
+        if any(phrase in lower for phrase in phrases):
+            is_conversational = True
+            conversational_type = intent
+            break
+
+    # Also check if it's a very short message (likely conversational)
+    is_short_message = len(user_input.split()) <= 3
+
+    if is_conversational or is_short_message:
+        # Use conversation agent for casual chat
+        base_task = conversation_task(user_input, context="")
+        desc, expected = task_to_strings(base_task)
+        assigned_task = Task(
+            description=desc,
+            expected_output=expected or base_task.expected_output,
+            agent=conversation_agent,
+            output_file=getattr(base_task, "output_file", "conversation_log.md"),
+            config={},
+        )
+        crew = Crew(agents=[conversation_agent], tasks=[assigned_task], process=Process.sequential, verbose=False)
+        result = crew.kickoff()
+        return safe_extract_text(result)
+
+    # ===== TEACHING INTENT =====
     teaching_phrases = [
-        "teach me", "explain", "what is", "how to", "learn python", 
+        "teach me", "explain", "what is", "how to", "learn python",
         "step by step", "from start", "beginner guide", "tutorial",
-        "concept", "lesson", "course", "understand", "help me learn"
+        "concept", "lesson", "course", "understand", "help me learn",
+        "what are", "how do i", "can you show me", "demonstrate",
+        "tell me about", "i want to learn", "show me how"
     ]
-    
+
     teaching_requested = any(phrase in lower for phrase in teaching_phrases)
-    
+
     # If it's clearly a teaching request, route to teaching expert
     if teaching_requested:
         # Use the user's phrase as topic when appropriate, else generic "Getting started"
@@ -477,14 +539,15 @@ def process_user_input_and_run(user_input: str) -> str:
         text = safe_extract_text(result)
         return text
 
-    # Comprehensive code review detection
+    # ===== CODE REVIEW INTENT =====
     code_review_phrases = [
         "review my code", "check this code", "debug", "code review",
         "what's wrong", "whats wrong", "error", "fix this",
         "why isn't this working", "can you tell me whats wrong",
         "what is wrong with this", "help with this code",
         "why is this not working", "this code doesn't work",
-        "fix my code", "bug in my code", "help me fix"
+        "fix my code", "bug in my code", "help me fix",
+        "syntax error", "runtime error", "logic error"
     ]
 
     code_review_requested = any(phrase in lower for phrase in code_review_phrases)
@@ -496,7 +559,9 @@ def process_user_input_and_run(user_input: str) -> str:
         "print(", "input(", "float(", "int(", "str(", "range(", "len(",
         " = ", " == ", " != ", " += ", " -= ", " *= ", " /= ",
         " and ", " or ", " not ", " in ", " is ", " with ", " as ",
-        "from ", "return ", "yield ", "assert ", "raise ", "pass ", "break ", "continue "
+        "from ", "return ", "yield ", "assert ", "raise ", "pass ", "break ", "continue ",
+        "def ", "lambda ", "global ", "nonlocal ", "async ", "await ", "del ",
+        "if __name__", "self.", "super(", "init(", "repr(", "str(", "len("
     ]
 
     for indicator in python_indicators:
@@ -534,8 +599,15 @@ def process_user_input_and_run(user_input: str) -> str:
         result = crew.kickoff()
         return safe_extract_text(result)
 
-    # Curriculum path
-    if any(p in lower for p in ("curriculum", "learning path", "syllabus", "study plan")):
+    # ===== CURRICULUM INTENT =====
+    curriculum_phrases = [
+        "curriculum", "learning path", "syllabus", "study plan",
+        "roadmap", "learning journey", "what should i learn",
+        "where to start", "how to learn python", "study guide",
+        "learning schedule", "course outline"
+    ]
+
+    if any(p in lower for p in curriculum_phrases):
         base_task = curriculum_task(goals, skill, time_availability="regular",
                                     specific_interests=st.session_state.user_info.get("interests", ""))
         desc, expected = task_to_strings(base_task)
@@ -550,8 +622,14 @@ def process_user_input_and_run(user_input: str) -> str:
         result = crew.kickoff()
         return safe_extract_text(result)
 
-    # Quiz path
-    if any(p in lower for p in ("quiz", "test me", "question", "exam")):
+    # ===== QUIZ INTENT =====
+    quiz_phrases = [
+        "quiz", "test me", "question", "exam", "assessment",
+        "challenge me", "test my knowledge", "practice questions",
+        "multiple choice", "trivia", "pop quiz"
+    ]
+
+    if any(p in lower for p in quiz_phrases):
         topic = "Python basics"
         for cue in ("about", "on"):
             if cue in lower:
@@ -571,7 +649,8 @@ def process_user_input_and_run(user_input: str) -> str:
         result = crew.kickoff()
         return safe_extract_text(result)
 
-    # Default fallback: use the coordinator
+    # ===== DEFAULT: COORDINATOR =====
+    # For everything else, use the coordinator to figure out the best approach
     base_task = coordination_task([f"user: {user_input}"], user_input, skill, goals)
     desc, expected = task_to_strings(base_task)
     assigned_task = Task(

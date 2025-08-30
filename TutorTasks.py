@@ -310,3 +310,32 @@ def coordination_task(context, student_query, student_level, student_goals):
         output_file="coordination_plan.md",
         config={},
     )
+
+
+def conversation_task(user_input, context=""):
+    return Task(
+        description=f"""
+        Handle this casual conversation message from the student: "{user_input}"
+
+        Context from previous messages: {context}
+
+        Your goal is to respond naturally and keep the conversation flowing. This is not a technical 
+        question about Python - it's casual conversation like greetings, thanks, or general chat.
+
+        GUIDELINES:
+        1. Keep responses brief and friendly
+        2. Match the tone of the student's message
+        3. If they say thanks, acknowledge it warmly
+        4. If they greet you, respond appropriately
+        5. If they make small talk, engage naturally
+        6. Gently steer the conversation back to Python learning when appropriate
+        7. Don't overthink it - keep it simple and human-like
+
+        Remember: The student is interacting with a Python tutor, so keep your responses relevant 
+        to the learning context while being natural and conversational.
+        """,
+        expected_output="A brief, friendly, natural conversation response (1-2 sentences max)",
+        agent=None,
+        output_file='conversation_log.md',
+        config={},
+    )
