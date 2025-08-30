@@ -7,7 +7,7 @@ from TeachingTools import search_python_resources
 from crewai import LLM
 
 is_local = "localhost" in os.getenv("STREAMLIT_SERVER_BASE_URL", "localhost")
-http_referer = "http://localhost:8501" if is_local else "https://pythonaut-app.streamlit.app"
+http_referer = "http://localhost:8501" if is_local else "https://pythonautpythonteacher-avrff3ruyvpnqueadyn6it.streamlit.app/"
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") or st.secrets["openrouter"]["api_key"]
 
