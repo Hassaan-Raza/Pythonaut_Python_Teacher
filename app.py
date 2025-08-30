@@ -1,8 +1,24 @@
-# app.py - Finalized: assign tasks to agents, run Crew, stream responses, save chat
+import os
+import sys
+
+# Set environment variables to disable CrewAI knowledge features FIRST
+os.environ["CREWAI_KNOWLEDGE_DISABLED"] = "True"
+os.environ["CREWAI_KNOWLEDGE_STORAGE_DISABLED"] = "True"
+
+# Try to replace standard sqlite3 with pysqlite3
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # If pysqlite3 is not available, fall back to disabling knowledge features
+    os.environ["CREWAI_KNOWLEDGE_DISABLED"] = "True"
+    os.environ["CREWAI_KNOWLEDGE_STORAGE_DISABLED"] = "True"
+    print("pysqlite3 not available, using standard sqlite3 with knowledge disabled")
+
 import streamlit as st
 import time
 import json
-import os
+from pathlib import Path
 from crewai import Crew, Task, Process
 from TutorTasks import (
     teaching_task,
@@ -24,30 +40,8 @@ from streamlit_local_storage import LocalStorage
 import re
 
 # Set BASE_DIR to the current directory
-BASE_DIR = Path(__file__).resolve().parent  # Use os.getcwd() if you prefer the working directory
+BASE_DIR = Path(__file__).resolve().parent
 
-# Swap standard SQLite3 with pysqlite3-binary
-__import__('pysqlite3')
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-try:
-    import pysqlite3
-    sys.modules['sqlite3'] = sys.modules['pysqlite3']
-except ImportError:
-    # Fallback to disabling knowledge
-    import os
-    os.environ["CREWAI_KNOWLEDGE_DISABLED"] = "True"
-    os.environ["CREWAI_KNOWLEDGE_STORAGE_DISABLED"] = "True"
-
-os.environ["CREWAI_KNOWLEDGE_DISABLED"] = "True"
-os.environ["CREWAI_KNOWLEDGE_STORAGE_DISABLED"] = "True"
 # -------------------------
 # Page config & CSS
 # -------------------------
