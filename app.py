@@ -449,6 +449,34 @@ def process_user_input_and_run(user_input: str) -> str:
     skill = st.session_state.user_info.get("level", "beginner")
     goals = st.session_state.user_info.get("goals", "")
 
+    # TEACHING INTENT DETECTION - Check this FIRST
+    teaching_phrases = [
+        "teach me", "explain", "what is", "how to", "learn python", 
+        "step by step", "from start", "beginner guide", "tutorial",
+        "concept", "lesson", "course", "understand", "help me learn"
+    ]
+    
+    teaching_requested = any(phrase in lower for phrase in teaching_phrases)
+    
+    # If it's clearly a teaching request, route to teaching expert
+    if teaching_requested:
+        # Use the user's phrase as topic when appropriate, else generic "Getting started"
+        topic = user_input if len(user_input.split()) < 30 else "Python programming from beginner to advanced"
+        base_task = teaching_task(topic, skill, student_background="")
+        desc, expected = task_to_strings(base_task)
+        assigned_task = Task(
+            description=desc,
+            expected_output=expected or base_task.expected_output,
+            agent=teaching_expert,
+            output_file=getattr(base_task, "output_file", "teaching_report.md"),
+            config={},
+        )
+
+        crew = Crew(agents=[teaching_expert], tasks=[assigned_task], process=Process.sequential, verbose=False)
+        result = crew.kickoff()
+        text = safe_extract_text(result)
+        return text
+
     # Comprehensive code review detection
     code_review_phrases = [
         "review my code", "check this code", "debug", "code review",
@@ -506,25 +534,6 @@ def process_user_input_and_run(user_input: str) -> str:
         result = crew.kickoff()
         return safe_extract_text(result)
 
-    # Teaching path
-    if any(p in lower for p in ("explain", "what is", "teach me", "how to", "hello, python")) or "beginner" in lower:
-        # Use the user's phrase as topic when appropriate, else generic "Getting started"
-        topic = user_input if len(user_input.split()) < 30 else "Getting started with Python"
-        base_task = teaching_task(topic, skill, student_background="")
-        desc, expected = task_to_strings(base_task)
-        assigned_task = Task(
-            description=desc,
-            expected_output=expected or base_task.expected_output,
-            agent=teaching_expert,
-            output_file=getattr(base_task, "output_file", "teaching_report.md"),
-            config={},
-        )
-
-        crew = Crew(agents=[teaching_expert], tasks=[assigned_task], process=Process.sequential, verbose=False)
-        result = crew.kickoff()
-        text = safe_extract_text(result)
-        return text
-
     # Curriculum path
     if any(p in lower for p in ("curriculum", "learning path", "syllabus", "study plan")):
         base_task = curriculum_task(goals, skill, time_availability="regular",
@@ -575,7 +584,6 @@ def process_user_input_and_run(user_input: str) -> str:
     crew = Crew(agents=[project_coordinator], tasks=[assigned_task], process=Process.sequential, verbose=False)
     result = crew.kickoff()
     return safe_extract_text(result)
-
 
 # -------------------------
 # Chat input handling
