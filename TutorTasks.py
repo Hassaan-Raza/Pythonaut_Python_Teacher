@@ -7,130 +7,59 @@ def task_to_strings(task: Task):
         f"Expected output:\n{task.expected_output.strip()}" if task.expected_output else ""
     )
 
-# -----------------------------
-#  Teaching Task
-# -----------------------------
+
 # -----------------------------
 #  Teaching Task
 # -----------------------------
 def teaching_task(topic, skill_level, student_background=""):
-    # Define the proper learning progression for beginners
-    python_progression = [
-        "Variables and Data Types", "Strings and String Manipulation",
-        "Numbers and Basic Operations", "Lists and Tuples", "Dictionaries and Sets",
-        "Conditional Statements (if/elif/else)", "Loops (for/while)",
-        "Functions", "Modules and Packages", "File Handling",
-        "Error Handling (try/except)", "Object-Oriented Programming",
-        "Advanced Topics (Decorators, Generators, etc.)"
-    ]
+    return Task(
+        description=f"""
+        You are responsible for teaching the Python topic **'{topic}'** to a {skill_level} student.
 
-    # If it's a beginner asking for general concepts, create a structured lesson
-    if skill_level.lower() == "beginner" and any(
-            word in topic.lower() for word in ["concept", "basics", "start", "beginner", "fundamental"]):
-        progression_description = "\n".join([f"{i + 1}. {concept}" for i, concept in enumerate(python_progression)])
+        STUDENT PROFILE:
+        - Skill Level: {skill_level}
+        - Background: {student_background if student_background else 'Not provided'}
+        - Specific Request: "{topic}"
 
-        return Task(
-            description=f"""
-            You are responsible for teaching Python programming to a complete beginner who wants to learn from the very basics.
+        REQUIREMENTS:
+        1. Provide a COMPREHENSIVE explanation, not just an introduction
+        2. Start with a simple and clear definition of the topic
+        3. Provide a relatable analogy that connects to everyday life
+        4. Create 3-5 progressively complex Python code examples that build understanding step-by-step
+        5. Highlight common mistakes and misconceptions learners often make with this topic
+        6. Provide practical applications (real-world uses, mini-projects)
+        7. Share memory tips or strategies to help the student retain the concept
+        8. Include practice exercises with solutions
+        9. Adjust the technical depth to match the student's {skill_level} level
+        10. DO NOT use external search tools - rely on your own knowledge
 
-            STUDENT PROFILE:
-            - Skill Level: {skill_level}
-            - Background: {student_background if student_background else 'No prior programming experience'}
-            - Request: {topic}
+        IMPORTANT: Provide a complete, standalone explanation. Do not suggest external resources or tell the student to search elsewhere.
 
-            TEACHING APPROACH:
-            Follow this structured progression for absolute beginners:
-            {progression_description}
+        TONE & STYLE:
+        - Use plain, beginner-friendly language (avoid unnecessary jargon)
+        - If a technical term must be used, define it clearly
+        - Keep explanations engaging and supportive
+        - Provide full explanations, not just introductory statements
+        """,
+        expected_output=f"""
+        A comprehensive educational guide (Markdown format) that includes:
+        - A clear title with the topic name
+        - A detailed definition of the topic
+        - An analogy that relates to everyday life
+        - 3-5 progressive code examples with explanations
+        - A section on common mistakes and how to avoid them
+        - A section on practical applications with real-world examples
+        - Practice exercises with solutions
+        - A section with memory tips and learning strategies
+        - A summary and next learning steps
 
-            REQUIREMENTS:
-            1. Start with the absolute basics: what is programming, what is Python, and why learn it.
-            2. Explain variables and data types with simple, relatable analogies.
-            3. Cover string manipulation with practical examples.
-            4. Progress through each concept in the order shown above.
-            5. For each concept:
-               - Provide a simple definition
-               - Give a relatable analogy
-               - Show 2-3 code examples that build understanding
-               - Highlight common mistakes and how to avoid them
-               - Suggest practical exercises
-            6. Use plain, beginner-friendly language (avoid unnecessary jargon).
-            7. If a technical term must be used, define it clearly.
-            8. Keep explanations engaging and supportive.
-
-            TONE & STYLE:
-            - Patient, encouraging, and thorough
-            - Start with simple explanations before adding complexity
-            - Use everyday analogies that a complete beginner can relate to
-            - Check for understanding with rhetorical questions
-            """,
-            expected_output=f"""
-            A comprehensive beginner's guide to Python (Markdown format) that includes:
-
-            PART 1: INTRODUCTION TO PROGRAMMING
-            - What is programming and why learn Python?
-            - Setting up a Python environment (brief overview)
-
-            PART 2: CORE CONCEPTS (in order)
-            For each of the following concepts, provide:
-            - Clear definition with analogy
-            - 2-3 progressively complex code examples
-            - Common mistakes and how to avoid them
-            - Practical mini-exercises
-
-            Concepts to cover in order:
-            {progression_description}
-
-            PART 3: NEXT STEPS
-            - How to practice effectively
-            - Recommended learning resources
-            - How to continue the learning journey
-
-            The guide should be structured as a complete beginner's course that someone with no prior experience can follow.
-            """,
-            agent=None,
-            output_file='beginner_python_course.md',
-            config={},
-        )
-    else:
-        # For specific topics or advanced students, use the original approach
-        return Task(
-            description=f"""
-            You are responsible for teaching the Python topic **'{topic}'**.
-
-            STUDENT PROFILE:
-            - Skill Level: {skill_level}
-            - Background: {student_background if student_background else 'Not provided'}
-
-            REQUIREMENTS:
-            1. Start with a **simple and clear definition** of the topic.
-            2. Provide a **relatable analogy** that connects to everyday life.
-            3. Create **2-3 progressively complex Python code examples** that build understanding step-by-step.
-            4. Highlight **common mistakes and misconceptions** learners often make with this topic.
-            5. Provide **practical applications** (real-world uses, mini-projects).
-            6. Share **memory tips or strategies** to help the student retain the concept.
-            7. Adjust the technical depth to match the student's **{skill_level}** level.
-
-            TONE & STYLE:
-            - Use plain, beginner-friendly language (avoid unnecessary jargon).
-            - If a technical term must be used, **define it clearly**.
-            - Keep explanations **engaging and supportive**.
-            """,
-            expected_output=f"""
-            A comprehensive educational guide (Markdown format) that includes:
-            - A clear **title** with the topic name.
-            - A **definition** of the topic.
-            - An **analogy**.
-            - **Progressive code examples** (2-3).
-            - A section on **common mistakes**.
-            - A section on **practical applications**.
-            - A section with **memory tips**.
-            - A **summary** and **next learning steps**.
-            """,
-            agent=None,
-            output_file='teaching_report.md',
-            config={},
-        )
-
+        The guide should be thorough enough that a student could read it and have a solid understanding
+        of the topic, not just a superficial introduction.
+        """,
+        agent=None,
+        output_file='teaching_report.md',
+        config={},
+    )
 
 # -----------------------------
 #  Code Review Task
@@ -312,6 +241,9 @@ def coordination_task(context, student_query, student_level, student_goals):
     )
 
 
+# -----------------------------
+#  Conversation Task
+# -----------------------------
 def conversation_task(user_input, context=""):
     return Task(
         description=f"""
@@ -322,8 +254,13 @@ def conversation_task(user_input, context=""):
         Your goal is to respond naturally and keep the conversation flowing. This is not a technical 
         question about Python - it's casual conversation like greetings, thanks, or general chat.
 
+        SPECIAL INSTRUCTIONS FOR FOLLOW-UPS:
+        - If the student says "yes", "please", or "tell me more", gently guide them to ask a specific question
+        - If they seem interested in learning more, encourage them to ask about a specific Python topic
+        - Don't provide technical explanations yourself - redirect to proper teaching if needed
+
         GUIDELINES:
-        1. Keep responses brief and friendly
+        1. Keep responses brief and friendly (1-2 sentences max)
         2. Match the tone of the student's message
         3. If they say thanks, acknowledge it warmly
         4. If they greet you, respond appropriately
@@ -334,7 +271,7 @@ def conversation_task(user_input, context=""):
         Remember: The student is interacting with a Python tutor, so keep your responses relevant 
         to the learning context while being natural and conversational.
         """,
-        expected_output="A brief, friendly, natural conversation response (1-2 sentences max)",
+        expected_output="A brief, friendly, natural conversation response (1-2 sentences max) that maintains a positive learning environment",
         agent=None,
         output_file='conversation_log.md',
         config={},

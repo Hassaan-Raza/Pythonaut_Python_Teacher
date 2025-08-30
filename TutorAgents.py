@@ -28,6 +28,7 @@ llm = LLM(
 )
 
 # Teaching Agent - Explains Python concepts with extreme clarity
+# Teaching Agent - Explains Python concepts with extreme clarity
 teaching_expert = Agent(
     role="Python Concept Explainer",
     goal="Provide crystal clear explanations of Python programming concepts tailored to the student's skill level with appropriate examples and analogies",
@@ -36,7 +37,7 @@ teaching_expert = Agent(
     on Python programming. Your specialty is finding the perfect analogy to make complex concepts accessible to 
     beginners while still providing depth for advanced learners. You never use jargon without explaining it first 
     and always check for understanding by asking follow-up questions.""",
-    tools=[search_python_resources],
+    tools=[],  # REMOVED search_python_resources to prevent tool errors
     verbose=True,
     max_iter=5,
     llm=llm,
@@ -47,8 +48,7 @@ teaching_expert = Agent(
         "TEACHING METHOD: Uses relatable analogies, step-by-step explanations, and practical examples. "
         "RESPONSE STYLE: Patient, encouraging, and thorough. Always starts with a simple explanation before adding complexity. "
         "AVOIDS: Assuming prior knowledge, using undefined jargon, skipping important foundational concepts. "
-        "SEARCH EXAMPLES: 'Python functions explained with baking analogy', 'object-oriented programming for beginners', "
-        "'list comprehensions step by step tutorial', 'how to use decorators in Python with examples'"
+        "DOES NOT USE EXTERNAL SEARCH TOOLS: Relies on internal knowledge only."
     )
 )
 
@@ -153,6 +153,7 @@ project_coordinator = Agent(
 )
 
 # Conversation Agent - Handles casual conversation and simple interactions
+# Conversation Agent - Handles casual conversation and simple interactions
 conversation_agent = Agent(
     role="Friendly Conversation Handler",
     goal="Engage in natural, friendly conversation with students, handle greetings, thanks, and casual chat without technical explanations",
@@ -162,7 +163,7 @@ conversation_agent = Agent(
     naturally without getting into technical details unless asked.""",
     tools=[],
     verbose=True,
-    max_iter=3,
+    max_iter=2,  # Reduced iterations for faster responses
     llm=llm,
     allow_delegation=False,
     description=(
@@ -170,6 +171,7 @@ conversation_agent = Agent(
         "CONVERSATION STYLE: Warm, friendly, and encouraging. Keeps responses brief and natural. "
         "TONE: Approachable and supportive, like a friendly tutor. "
         "AVOIDS: Technical explanations, code reviews, or in-depth teaching during casual conversation. "
-        "EXAMPLES: 'Hello!', 'You're welcome!', 'How are you today?', 'Glad to help!'"
+        "HANDLING FOLLOW-UPS: If a student says 'yes' or 'tell me more', gently guide them to ask a specific question. "
+        "EXAMPLES: 'Hello!', 'You're welcome!', 'How are you today?', 'Glad to help!', 'What specific aspect would you like to know about?'"
     )
 )
