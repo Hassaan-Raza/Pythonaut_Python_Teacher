@@ -7,3 +7,4 @@ xhtml2pdf>=0.2.11
 python-dotenv>=1.0.0
 pysqlite3-binary
 langchain-community>=0.0.1  # Add the missing langchain_community module
+streamlit-local-storage>=0.0.25
