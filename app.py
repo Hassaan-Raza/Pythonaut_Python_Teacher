@@ -36,6 +36,16 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+try:
+    import pysqlite3
+    sys.modules['sqlite3'] = sys.modules['pysqlite3']
+except ImportError:
+    # Fallback to disabling knowledge
+    import os
+    os.environ["CREWAI_KNOWLEDGE_DISABLED"] = "True"
+    os.environ["CREWAI_KNOWLEDGE_STORAGE_DISABLED"] = "True"
+
 os.environ["CREWAI_KNOWLEDGE_DISABLED"] = "True"
 os.environ["CREWAI_KNOWLEDGE_STORAGE_DISABLED"] = "True"
 # -------------------------
