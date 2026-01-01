@@ -3,6 +3,7 @@ crewai
 duckduckgo-search
 markdown
 beautifulsoup4
+litellm
 xhtml2pdf
 python-dotenv
 pysqlite3-binary
